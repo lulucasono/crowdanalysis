@@ -1,0 +1,1 @@
+cat privamov-gsm | awk '{print }' | sort -n | uniq -c | tee -a count_unic.txt

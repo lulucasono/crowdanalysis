@@ -1,1 +1,0 @@
-cat privamov-gsm | grep -e '^1\t' | tee userOne.txt

@@ -1,1 +1,1 @@
-cat privamov-gsm | awk '{print }' | sort -n | uniq -c | tee -a count_unic.txt
+cat privamov-gsm | awk '{print $4}' | sort -n | uniq -c | tee -a count_unic_gsmZones.txt

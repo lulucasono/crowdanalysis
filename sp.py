@@ -15,7 +15,10 @@ from datetime import datetime
 input_file_name = sys.argv[1]
 output_file_name = sys.argv[2]
 
+#Use utf-16 for file treated on Windows(usually encoded in UTF-16) 
 input_table = pd.read_csv(input_file_name,header=None, encoding = "UTF-8", sep='\t')
+#input_table = pd.read_csv(input_file_name,header=None, encoding = "UTF-16", sep='\t')
+
 # Copy input to output
 # output_table_1 = input_table.copy()
 # output_table = pd.DataFrame(columns=['id','longitude', 'lattitude','enterTime','quitTime'])
@@ -24,6 +27,9 @@ rows_list = []
 
 # Size of dataset
 sLength = len(input_table[0])
+
+#id user
+id_user = input_table.iloc[0,0]
 
 # Add a new column to mark the stay point cluster
 #SP = pd.Series(-1 for i in range(sLength))
@@ -87,7 +93,9 @@ while i<sLength:
 				a,b = MeanCood(i,j)
 				#print(a,b,output_table_1.ix[i,'timestamp'],output_table_1.ix[j,'timestamp'])                
 				#output_table_2 = output_table_2.append([{'index':n,'longitude':a,'lattitude':b,'enterTime':output_table_1.ix[i,'timestamp']-output_table_1.ix[i,'timestamp'],'count':1}], ignore_index=True)
-				dictionary[i] = [a,b,timestampi,timestampj]
+				dictionary[n] = [id_user,a,b,timestampi,timestampj]
+				n+=1
+				#print(dictionary)
 				i = j
 				Token = 1
 			break
@@ -99,6 +107,6 @@ while i<sLength:
 #print(output_table_2.to_string())
 #output_table_1.to_csv('./out1.csv')
 output_table = pd.DataFrame.from_dict(dictionary,  orient='index', columns=['id','longitude', 'lattitude','enterTime','quitTime']);
-output_table.to_csv(output_file_name)
+output_table.to_csv(output_file_name,header=None, index=None, sep='\t')
 
 	

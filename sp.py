@@ -10,11 +10,12 @@ from math import sin, cos, sqrt, atan2, radians
 #import numpy as np
 import pandas as pd
 import sys
+from datetime import datetime
 
 input_file_name = sys.argv[1]
 output_file_name = sys.argv[2]
 
-input_table = pd.read_csv(input_file_name)
+input_table = pd.read_csv(input_file_name,header=None, encoding = "UTF-8", sep='\t')
 # Copy input to output
 # output_table_1 = input_table.copy()
 # output_table = pd.DataFrame(columns=['id','longitude', 'lattitude','enterTime','quitTime'])
@@ -22,7 +23,7 @@ dictionary = {}
 rows_list = []
 
 # Size of dataset
-sLength = len(input_table['id'])
+sLength = len(input_table[0])
 
 # Add a new column to mark the stay point cluster
 #SP = pd.Series(-1 for i in range(sLength))
@@ -37,10 +38,10 @@ timeThreh = 1800;
 # Function to calcul distance between two points
 def Distance(i,j):
 	R = 6373.0
-	lat1 = radians(input_table.ix[i,'lattitude'])
-	lon1 = radians(input_table.ix[i,'longitude'])
-	lat2 = radians(input_table.ix[j,'lattitude'])
-	lon2 = radians(input_table.ix[j,'longitude'])
+	lat1 = radians(input_table.iloc[i,3])
+	lon1 = radians(input_table.iloc[i,2])
+	lat2 = radians(input_table.iloc[j,3])
+	lon2 = radians(input_table.iloc[j,2])
 	dlon = lon2 - lon1
 	dlat = lat2 - lat1	
 	a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
@@ -53,8 +54,8 @@ def MeanCood(i,j):
 	sumLat = 0
 	sumLong = 0
 	for x in range(i,j+1):
-		sumLat += input_table.ix[x,'lattitude']
-		sumLong += input_table.ix[x,'longitude']
+		sumLat += input_table.iloc[x,3]
+		sumLong += input_table.iloc[x,2]
 	return sumLong/(j+1-i),sumLat/(j+1-i)
 
 # Main loop
@@ -67,14 +68,26 @@ while i<sLength:
 	while j<sLength:
 		dist = Distance(i,j)
 		if dist>distThreh:
-			deltaT = input_table.ix[j,'timestamp'] - input_table.ix[i,'timestamp']
+			timej = input_table.iloc[j,1]
+			timei = input_table.iloc[i,1]
+			timestampj = 0
+			timestampi = 0
+			if len(timej)>19:
+				timestampj = datetime.strptime(timej, "%Y-%m-%d %H:%M:%S.%f").timestamp()
+			else:
+				timestampj = datetime.strptime(timej, "%Y-%m-%d %H:%M:%S").timestamp()
+			if len(timei)>19:
+				timestampi = datetime.strptime(timei, "%Y-%m-%d %H:%M:%S.%f").timestamp()
+			else:
+				timestampi = datetime.strptime(timei, "%Y-%m-%d %H:%M:%S").timestamp()
+			deltaT = timestampj - timestampi
 			if deltaT>timeThreh:
 				#print(n)
 				Token2 = 0
 				a,b = MeanCood(i,j)
 				#print(a,b,output_table_1.ix[i,'timestamp'],output_table_1.ix[j,'timestamp'])                
 				#output_table_2 = output_table_2.append([{'index':n,'longitude':a,'lattitude':b,'enterTime':output_table_1.ix[i,'timestamp']-output_table_1.ix[i,'timestamp'],'count':1}], ignore_index=True)
-				dictionary[i] = [a,b,input_table.ix[i,'timestamp'],input_table.ix[j,'timestamp']]
+				dictionary[i] = [a,b,timestampi,timestampj]
 				i = j
 				Token = 1
 			break

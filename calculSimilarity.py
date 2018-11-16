@@ -28,7 +28,7 @@ class Node:
 	def __eq__(self, other):
 		"""Overrides the default implementation"""
 		if isinstance(other, Node):
-			return self.cluster == other.cluster
+			return (self.cluster == other.cluster) & (self.ipos == other.ipos) & (self.jpos == other.jpos)
 		return False
 	
 	def __repr__(self):
@@ -37,7 +37,8 @@ class Node:
 	
 def ExtendSequence(seq,i,j,tth):
 #	print("seq:",seq)
-	res = [seq]
+#	print("enter ExtendSequence")
+	res = []
 	seqi = ast.literal_eval(input_seq.iloc[i,1])
 	seqj = ast.literal_eval(input_seq.iloc[j,1])
 	timei = ast.literal_eval(input_seq.iloc[i,3])
@@ -49,11 +50,14 @@ def ExtendSequence(seq,i,j,tth):
 			deltaj = sum(timej[lastNode.jpos:jj])
 #			print(seqi[ii],seqj[jj])
 			if (seqi[ii]==seqj[jj]) & (abs(deltai-deltaj)<=tth):
+				if(len(res)==0):
+					res = [seq.copy()]
 				res[-1].append(Node(seqi[ii],ii,jj))
-#				print("res[-1]:",res[-1])
-#				print("qqqqqqqqqqqqqqqqqqqqq")
-#				print("seq:",seq)
-				res.append(seq)
+#				print("s:",seq)
+#				print("seq_extended:",res[-1])
+#				print("s:",seq)
+#				print()
+				res.append(seq.copy())
 					
 	return res
 
@@ -62,7 +66,7 @@ def SequenceMatching(i,j,maxLength,tth):
 	step = 0
 	seqi = ast.literal_eval(input_seq.iloc[i,1])
 	seqj = ast.literal_eval(input_seq.iloc[j,1])
-	maxLength = max(len(seqi),len(seqj))
+#	maxLength = max(len(seqi),len(seqj))
 	
 	#1_len_seq = []
 	for x in range(len(seqi)):
@@ -75,23 +79,35 @@ def SequenceMatching(i,j,maxLength,tth):
 #	print(res)
 	while step<=maxLength:
 		extended_seqs = []
+#		print("res:",res)
 		for s in res:
+#			print("s:",s,"len:",len(s))
 			if len(s)==step:
-				extended_seqs.append(ExtendSequence(s,i,j,tth))
-		for a in extended_seqs:
-			for aa in a:
-				res.append(aa)
+				extended_seqs.append(ExtendSequence(s,i,j,tth))	
+
 		
-#		print(res)
+		for es in extended_seqs:
+#			print("s:",s)
+#			print("es:",es)
+			res = res + es
+#			print("res:",res)
+		
+		if len(res)>0:
+			m = max(len(l) for l in res)
+		else:
+			break
+#		print(m)
 		step += 1
-		res = [e for e in res if len(e)<step]
+		res = [e for e in res if len(e)==m]
 		
+#		print("res:",res)
+#	print("step:",step)
 	return res
 
-#seqi = ast.literal_eval(input_seq.iloc[89,1])
-#seqj = ast.literal_eval(input_seq.iloc[20,1])
+#seqi = ast.literal_eval(input_seq.iloc[1,1])
+#seqj = ast.literal_eval(input_seq.iloc[1,1])
 #
-#res = SequenceMatching(89,20,5,10800)
+#res = SequenceMatching(1,1,5,10800)
 #print("seqi:",seqi)
 #print("seqj:",seqj)
 #print("res:")
@@ -99,10 +115,14 @@ def SequenceMatching(i,j,maxLength,tth):
 #	print(r)
 
 tth = 10800
+max_length = 3
 max_len_seq_table = [[[] for i in range(max_id_of_people+1)] for i in range(max_id_of_people+1)]
 for i in range(len(input_seq[0])):
-	for j in range(len(input_seq[0])):
-		max_len_seq_table[input_seq.iloc[i,0]][input_seq.iloc[j,0]] = SequenceMatching(i,j,10,tth)
+	print(i)
+	for j in range(i,len(input_seq[0])):
+		max_len_seq_table[input_seq.iloc[i,0]][input_seq.iloc[j,0]] = SequenceMatching(i,j,max_length,tth)
 #		print(input_seq.iloc[i,0],"-",input_seq.iloc[j,0],":",max_len_seq_table[input_seq.iloc[i,0]][input_seq.iloc[j,0]])
 		
-print(max_len_seq_table[17][41])
+#print(max_len_seq_table[17][41])
+df = pd.DataFrame(max_len_seq_table)
+df.to_csv("max_len_seq_table_"+str(max_length),header=None, index=None, sep='\t')

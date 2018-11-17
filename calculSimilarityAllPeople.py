@@ -145,7 +145,7 @@ for j in range(len(input_seq[0])):
 	print("=============================================")
 	pidj = input_seq.iloc[j,0]
 	print("perseon id:",	pidj)
-	for i in range(j,len(input_seq[0])):
+	for i in range(j+1,len(input_seq[0])):
 		pid = input_seq.iloc[i,0]
 		max_len_seq_table[pidj][pid] = SequenceMatching(input_seq,j,i,max_length,tth)
 		similarity[pidj][pid] = SimilarityOfLayer(max_len_seq_table, j, i)

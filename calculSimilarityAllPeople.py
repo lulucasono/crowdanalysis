@@ -12,7 +12,7 @@ import ast
 
 input_file_name = sys.argv[1]
 output_file_name = sys.argv[2]
-mlength = sys.argv[3]
+#mlength = sys.argv[3]
 
 
 input_seq = pd.read_csv(input_file_name,header=None, encoding = "UTF-8", sep='\t')
@@ -88,7 +88,7 @@ class LCS:
 			self.lcss.append(lcs[::-1])
 		
 
-def SequenceMatching(users_seq, i, j, maxLength,tth):
+def SequenceMatching(users_seq, i, j,tth):
 	seqi = ast.literal_eval(users_seq.iloc[i,1])
 #	print(seqi)
 	seqj = ast.literal_eval(users_seq.iloc[j,1])
@@ -139,7 +139,6 @@ def SimilarityMeasureOfSequence(seq,i,j):
 	timej = ast.literal_eval(input_seq.iloc[j,3])
 	if len(seq)==0:
 		return 0
-	m = len(seq)
 	sm = 0
 #	print(seq)
 	for node in seq:
@@ -175,7 +174,6 @@ def SimilarityOfLayer(seq_list,i,j):
 	s = s/(ni*nj)
 	return s
 
-max_length = int(mlength)
 #max_len_seq_table = [[-1 for i in range(max_id_of_people+1)] for i in range(max_id_of_people+1)]
 similarity = [[0 for i in range(max_id_of_people+1)] for i in range(max_id_of_people+1)]
 
@@ -187,7 +185,7 @@ for j in range(len(input_seq[0])):
 	for i in range(j+1,len(input_seq[0])):
 		pid = input_seq.iloc[i,0]
 		if not((pidj==4)&(pid==59)|(pid==4)&(pidj==59)):
-			max_len_seq_table = SequenceMatching(input_seq,j,i,max_length,tth)
+			max_len_seq_table = SequenceMatching(input_seq,j,i,tth)
 #			print(max_len_seq_table)
 			similarity[pidj][pid] = SimilarityOfLayer(max_len_seq_table, j, i)
 			similarity[pid][pidj] = SimilarityOfLayer(max_len_seq_table, j, i)

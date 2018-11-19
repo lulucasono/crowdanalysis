@@ -12,13 +12,9 @@ import ast
 
 input_file_name = sys.argv[1]
 output_file_name = sys.argv[2]
-#mlength = sys.argv[3]
 
 
 input_seq = pd.read_csv(input_file_name,header=None, encoding = "UTF-8", sep='\t')
-
-#person_idx = input_seq.index[input_seq[0]==int(person_id)][0]
-#person_idx2 = input_seq.index[input_seq[0]==int(person_id2)][0]
 
 max_id_of_people = max(input_seq[0])
 tth = 1800
@@ -127,43 +123,55 @@ def SequenceMatching(users_seq, i, j,tth):
 				ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
 	lcs_set = set(tuple(x) for x in ob_LCS.lcss)
 	lcss = [ list(x) for x in lcs_set ]
-#	print(lcss)
 	
 	return lcss
 
 def SimilarityMeasureOfSequence(seq,i,j):
-#	print("Enter SimilarityMeasureOfSequence")
 	seqNi = ast.literal_eval(input_seq.iloc[i,2])
 	seqNj = ast.literal_eval(input_seq.iloc[j,2])
 	timei = ast.literal_eval(input_seq.iloc[i,3])
 	timej = ast.literal_eval(input_seq.iloc[j,3])
 	if len(seq)==0:
 		return 0
-	sm = 0
-#	print(seq)
-	for node in seq:
-		sm += min(seqNi[node.ipos],seqNj[node.jpos])
+	sm = []
+	res = 0
+#	n = 0
+	x = 1
+	lastx = x-1
+#	while x<len(seq):
+#		node = seq[x]
+#		n += 1
+#		if x>0:
+#			deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
+#			deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
+#			if abs(deltai-deltaj)<=tth:
+#				sm += 2**(n-1)*min(seqNi[node.ipos],seqNj[node.jpos])
+#			else:
+#				n = 1
+#				sm += 2**(n-1)*min(seqNi[node.ipos],seqNj[node.jpos])
+#		else:
+#			sm += min(seqNi[node.ipos],seqNj[node.jpos])
 #	sm = 2**(m-1) * sm	
-	for x in range(1,len(seq)):
+#	for x in range(1,len(seq)):
+#		deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
+#		deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
+#		if abs(deltai-deltaj)<=tth:
+#			sm *= 2
+	for node in seq:
+		sm.append( min(seqNi[node.ipos],seqNj[node.jpos]))
+	while x < len(seq):
 		deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
 		deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
-		if abs(deltai-deltaj)<=tth:
-			sm *= 2
+		if abs(deltai-deltaj)>tth:
+			lastx = x-1
+			res += 2**(x-lastx)*sum(sm[lastx:x+1])
+		x += 1
+		
+	if lastx == 0:
+		res += 2**(x+1-lastx)*sum(sm[lastx:x+1])
 	
-	return sm
+	return res
 
-#def SimilarityOfLayer(seq_list, i, j):
-##	print("Enter SimilarityOfLayer")
-#	ni = input_seq.iloc[i,4]
-#	nj = input_seq.iloc[j,4]
-#	s = 0;
-##	print(seq_list[input_seq.iloc[i,0]][input_seq.iloc[j,0]])
-##	print(seq_list)
-#	for seq in seq_list[input_seq.iloc[i,0]][input_seq.iloc[j,0]]:
-##		print("seq:",seq)
-#		s += SimilarityMeasureOfSequence(seq,i,j)
-#	s = s/(ni*nj)
-#	return s
 def SimilarityOfLayer(seq_list,i,j):
 #	print("Enter SimilarityOfLayer")
 	ni = input_seq.iloc[i,4]
@@ -174,7 +182,6 @@ def SimilarityOfLayer(seq_list,i,j):
 	s = s/(ni*nj)
 	return s
 
-#max_len_seq_table = [[-1 for i in range(max_id_of_people+1)] for i in range(max_id_of_people+1)]
 similarity = [[0 for i in range(max_id_of_people+1)] for i in range(max_id_of_people+1)]
 
 for j in range(len(input_seq[0])):
@@ -189,23 +196,9 @@ for j in range(len(input_seq[0])):
 #			print(max_len_seq_table)
 			similarity[pidj][pid] = SimilarityOfLayer(max_len_seq_table, j, i)
 			similarity[pid][pidj] = SimilarityOfLayer(max_len_seq_table, j, i)
-	#		print(pidj,"-",pid,":",max_len_seq_table[input_seq.iloc[i,0]])
-			print("Similarity("+str(pidj)+","+str(pid)+"):",similarity[pidj][pid])
+			print("Similarity("+str(pidj)+","+str(pid)+"):",similarity[pidj][pid],(similarity[pid][pidj]==len(max_len_seq_table))|(len(max_len_seq_table)>0))
+#			print()
 
-#for i in range(len(input_seq[0])):
-#	print(i)
-#	for j in range(i,len(input_seq[0])):
-#		max_len_seq_table[input_seq.iloc[i,0]][input_seq.iloc[j,0]] = SequenceMatching(i,j,max_length,tth)
-#		print(input_seq.iloc[i,0],"-",input_seq.iloc[j,0],":",max_len_seq_table[input_seq.iloc[i,0]][input_seq.iloc[j,0]])
-		
-#print(max_len_seq_table[17][41])
-#print(similarity)
+
 df = pd.DataFrame(similarity)
 df.to_csv(output_file_name,header=None, index=None, sep='\t')
-
-
-
-
-#similarity001 = [[] for i in range(max_id_of_people_001+1)]
-#for i in range(len(input_seq[0])):
-#	similarity001[input_seq.iloc[i,0]] = SimilarityOfLayer(input_seq,max_len_seq_table_001,idx_001,i)

@@ -81,11 +81,11 @@ def ExtendSequence(users_seq,seq,i,j,tth):
     return res
 
 class LCS:
-    lcss = []
     def __init__(self, timei, timej, tth):
         self.timei = timei
         self.timej = timej
         self.tth = tth
+        self.lcss = []
 
 #    def getAllLcs(self, flag, seqi, lcs, maxSublen, i, j):
 #        if (i == 0) | (j == 0) | len(lcs) == maxSublen :

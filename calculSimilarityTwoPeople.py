@@ -14,8 +14,9 @@ input_file_name = sys.argv[1]
 output_file_name = sys.argv[2]
 person_id = sys.argv[3]
 person_id2 = sys.argv[4]
-tth = sys.argv[5]
-
+max_length = sys.argv[5]
+tth = sys.argv[6]
+max_length = int(max_length)
 
 
 input_seq = pd.read_csv(input_file_name,header=None, encoding = "UTF-8", sep='\t')
@@ -86,6 +87,7 @@ class LCS:
         self.timej = timej
         self.tth = tth
         self.lcss = []
+        self.state = [[0 for x in range(len(timej)+2)] for x in range(len(timei)+2)]
 
 #    def getAllLcs(self, flag, seqi, lcs, maxSublen, i, j):
 #        if (i == 0) | (j == 0) | len(lcs) == maxSublen :
@@ -120,9 +122,22 @@ class LCS:
 #        elif direction == 4:
 #            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i-1, j)
 #            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i, j-1)
+    
+    def isLegal(self, seq):
+        for x in range(len(seq)):
+            deltai = sum(self.timei[seq[x-1].ipos:seq[x].ipos])
+            deltaj = sum(self.timej[seq[x-1].jpos:seq[x].jpos])
+            if abs(deltai-deltaj)>tth:
+                return False
+        return True
+    
     def getAllLcs(self, flag, seqi, lcs, maxSublen, i, j):
         while (i>0)&(j>0)&(len(lcs)<maxSublen):
-            print(i,j)
+#            print(i,j)
+            if self.state[i][j]==0:
+                self.state[i][j]=1
+            else:
+                break
             direction = flag[i][j]
             if direction == 2:
                 lcs.append(Node(seqi[i-1],i-1,j-1))
@@ -134,16 +149,18 @@ class LCS:
                 elif direction == 3:
                     j -= 1
                 else:
-                    self.getAllLcs(flag, seqi, lcs, maxSublen, i-1, j)
+                    tmp = lcs.copy()
+                    self.getAllLcs(flag, seqi, tmp, maxSublen, i-1, j)
+#                    lcs = tmp
                     self.getAllLcs(flag, seqi, lcs, maxSublen, i, j-1)
-        if len(lcs)==maxSublen:
+        if (len(lcs)==maxSublen) & self.isLegal(lcs):
             self.lcss.append(lcs[::-1])
+        del lcs
+
+
 
 
 def SequenceMatching(users_seq, i, j ,tth):
-#    print("Enter SequenceMatching")
-#    res = []
-#    step = 0
     seqi = ast.literal_eval(users_seq.iloc[i,1])
     print(seqi)
     seqj = ast.literal_eval(users_seq.iloc[j,1])
@@ -170,8 +187,7 @@ def SequenceMatching(users_seq, i, j ,tth):
                 c[x+1][y+1]=c[x][y+1]
                 flag[x+1][y+1] = 4
 
-#    maxStep = min(maxLength,max(max(c)))
-    maxStep = max(max(c))
+    maxStep = min(max_length,max(max(c)))
 
     print(pd.DataFrame(c))
 #    print(maxStep)
@@ -179,64 +195,62 @@ def SequenceMatching(users_seq, i, j ,tth):
 
     ob_LCS = LCS(timei, timej, tth)
     lcs = []
-    lcss = []
-    ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, leni, lenj)
-#    for x in range(leni,0,-1):
-#        for y in range(lenj,0,-1):
-##            print(x,y)
-#            if c[x][y] >= maxStep:
-#                lcs = []
-#                ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
+    while ob_LCS.lcss==0 & maxStep>0:
+        for x in range(leni,0,-1):
+            for y in range(lenj,0,-1):
+    #            print(x,y)
+                if c[x][y] >= maxStep:
+                    lcs = []
+                    ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
+        maxStep -= 1
                 
     print(ob_LCS.lcss)
-    lcs_set = set(tuple(x) for x in ob_LCS.lcss)
-    lcss = [ list(x) for x in lcs_set ]
+#    lcs_set = set(tuple(x) for x in ob_LCS.lcss)
+#    lcss = [ list(x) for x in lcs_set ]
 #    print(lcss)
-    return lcss
+    return ob_LCS.lcss
 
 def SimilarityMeasureOfSequence(seq,i,j):
 #    print("Enter SimilarityMeasureOfSequence")
     seqNi = ast.literal_eval(input_seq.iloc[i,2])
     seqNj = ast.literal_eval(input_seq.iloc[j,2])
-    timei = ast.literal_eval(input_seq.iloc[i,3])
-    timej = ast.literal_eval(input_seq.iloc[j,3])
     if len(seq)==0:
         return 0
 
-#    sm = 0
-#    res = 0
-#
-#    x = 0
-#    while x<len(seq):
-#        node = seq[x]
-#        x += 1
-#        sm+=min(seqNi[node.ipos],seqNj[node.jpos])
+    sm = 0
+    res = 0
+
+    x = 0
+    while x<len(seq):
+        node = seq[x]
+        x += 1
+        sm+=min(seqNi[node.ipos],seqNj[node.jpos])
 #
 #    print(sm)
-#    sm = 2**x * sm
+    res = 2**x * sm
 #    for x in range(1,len(seq)):
 #        deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
 #        deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
 #        if abs(deltai-deltaj)>tth:
 #            sm /= 2
 
-    sm = []
-    x = 1
-    lastx = x-1
-    res = 0
-    for node in seq:
-        sm.append( min(seqNi[node.ipos],seqNj[node.jpos]))
-#    print(sm)
-    while x < len(seq):
-        deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
-        deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
-        if abs(deltai-deltaj)>tth:
-            res += 2**(x+1-lastx)*sum(sm[lastx:x+1])
-            lastx = x-1
-#            print(res)
-        x += 1
-    if lastx == 0:
-        res += 2**(x+1-lastx)*sum(sm[lastx:x+1])
+#    sm = []
+#    x = 1
+#    lastx = x-1
+#    res = 0
+#    for node in seq:
+#        sm.append( min(seqNi[node.ipos],seqNj[node.jpos]))
+##    print(sm)
+#    while x < len(seq):
+#        deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
+#        deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
+#        if abs(deltai-deltaj)>tth:
+#            res += 2**(x+1-lastx)*sum(sm[lastx:x+1])
+#            lastx = x-1
+##            print(res)
+#        x += 1
+#    if lastx == 0:
+#        res += 2**(x+1-lastx)*sum(sm[lastx:x+1])
 
     return res
 

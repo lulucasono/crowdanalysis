@@ -121,31 +121,13 @@ class LCS:
 #            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i-1, j)
 #            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i, j-1)
     def getAllLcs(self, flag, seqi, lcs, maxSublen, i, j):
-#        print("call getAllLcs")
         while (i>0)&(j>0)&(len(lcs)<maxSublen):
-#            print(i,j,flag)
+            print(i,j)
             direction = flag[i][j]
             if direction == 2:
                 lcs.append(Node(seqi[i-1],i-1,j-1))
                 i -= 1
                 j -= 1
-#                if(len(lcs)>0):
-##                    print(i-1,lcs[-1].ipos)
-##                    print(j-1,lcs[-1].jpos)
-#                    deltai = sum(self.timei[i-1:lcs[-1].ipos])
-#                    deltaj = sum(self.timej[j-1:lcs[-1].jpos])
-##                    print(deltai,deltaj,deltai-deltaj)
-##                    print()
-#                    if abs(deltai-deltaj)<=self.tth:
-#                        lcs.append(Node(seqi[i-1],i-1,j-1))
-#                        i -= 1
-#                        j -= 1
-#                    else:
-#                        break
-#                else:
-#                    lcs.append(Node(seqi[i-1],i-1,j-1))
-#                    i -= 1
-#                    j -= 1
             else:
                 if direction == 1:
                     i -= 1
@@ -193,18 +175,20 @@ def SequenceMatching(users_seq, i, j ,tth):
 
     print(pd.DataFrame(c))
 #    print(maxStep)
-#    print(pd.DataFrame(flag))
+    print(pd.DataFrame(flag))
 
     ob_LCS = LCS(timei, timej, tth)
     lcs = []
     lcss = []
-#    ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, leni, lenj)
-    for x in range(leni,0,-1):
-        for y in range(lenj,0,-1):
-#            print(x,y)
-            if c[x][y] >= maxStep:
-                lcs = []
-                ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
+    ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, leni, lenj)
+#    for x in range(leni,0,-1):
+#        for y in range(lenj,0,-1):
+##            print(x,y)
+#            if c[x][y] >= maxStep:
+#                lcs = []
+#                ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
+                
+    print(ob_LCS.lcss)
     lcs_set = set(tuple(x) for x in ob_LCS.lcss)
     lcss = [ list(x) for x in lcs_set ]
 #    print(lcss)

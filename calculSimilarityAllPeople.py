@@ -163,8 +163,8 @@ def SimilarityMeasureOfSequence(seq,i,j):
 		deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
 		deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
 		if abs(deltai-deltaj)>tth:
-			lastx = x-1
 			res += 2**(x-lastx)*sum(sm[lastx:x+1])
+			lastx = x-1
 		x += 1
 		
 	if lastx == 0:

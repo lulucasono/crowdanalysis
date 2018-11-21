@@ -6,7 +6,7 @@ Created on Sun Nov 18 19:02:35 2018
 """
 
 import pandas as pd
-#import numpy as np
+import numpy as np
 import sys
 import ast
 
@@ -88,43 +88,9 @@ class LCS:
         self.tth = tth
         self.lcss = []
         self.state = [[0 for x in range(len(timej)+2)] for x in range(len(timei)+2)]
-
-#    def getAllLcs(self, flag, seqi, lcs, maxSublen, i, j):
-#        if (i == 0) | (j == 0) | len(lcs) == maxSublen :
-#            lcs = lcs[::-1]
-##            print("lcs:",lcs)
-##            print(maxSublen)
-#            if len(lcs) == maxSublen:
-#                self.lcss.append(lcs)
-##                lcs_set = set(tuple(x) for x in self.lcss)
-##                tmp_lcss = [ list(x) for x in lcs_set ]
-##                print("set of lcs:",tmp_lcss)
-#            return
-#        direction = flag[i][j]
-#        if direction == 1:
-#            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i-1, j)
-#        elif direction == 2:
-##            print(lcs)
-##            if len(lcs)>0:
-##                deltai = sum(self.timei[i-1:lcs[-1].ipos])
-##                deltaj = sum(self.timej[j-1:lcs[-1].jpos])
-###                print(lcs[-1].jpos,j)
-###                print(lcs[-1].jpos)
-##                print(deltai,deltaj,deltai-deltaj)
-##                if (deltai-deltaj)<self.tth:
-##                    lcs.append(Node(seqi[i-1],i-1,j-1))
-##            else:
-##                lcs.append(Node(seqi[i-1],i-1,j-1))
-#            lcs.append(Node(seqi[i-1],i-1,j-1))
-#            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i-1, j-1)
-#        elif direction == 3:
-#            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i, j-1)
-#        elif direction == 4:
-#            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i-1, j)
-#            self.getAllLcs(flag,seqi,lcs.copy(),maxSublen, i, j-1)
     
     def isLegal(self, seq):
-        for x in range(len(seq)):
+        for x in range(1,len(seq)):
             deltai = sum(self.timei[seq[x-1].ipos:seq[x].ipos])
             deltaj = sum(self.timej[seq[x-1].jpos:seq[x].jpos])
             if abs(deltai-deltaj)>tth:
@@ -189,29 +155,37 @@ def SequenceMatching(users_seq, i, j ,tth):
 
     maxStep = min(max_length,max(max(c)))
 
-    print(pd.DataFrame(c))
+#    print(pd.DataFrame(c))
 #    print(maxStep)
-    print(pd.DataFrame(flag))
+#    print(pd.DataFrame(flag))
 
     ob_LCS = LCS(timei, timej, tth)
+#    print(maxStep)
     lcs = []
-    while ob_LCS.lcss==0 & maxStep>0:
-        for x in range(leni,0,-1):
-            for y in range(lenj,0,-1):
-    #            print(x,y)
-                if c[x][y] >= maxStep:
-                    lcs = []
-                    ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
+    a = np.asarray(c)
+    sorted_values = (-a).argsort(axis=None, kind='mergesort')
+    idx = np.unravel_index(sorted_values, a.shape)
+    l = np.vstack(idx).T
+    while (len(ob_LCS.lcss)==0) & (maxStep>0):
+        for i in l:
+#            print("c[i[0]][i[1]]:",c[i[0]][i[1]])
+            if c[i[0]][i[1]] >= maxStep:
+                lcs = []
+                x = i[0]
+                y = i[1]
+                ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
+            else:
+                break
         maxStep -= 1
-                
-    print(ob_LCS.lcss)
-#    lcs_set = set(tuple(x) for x in ob_LCS.lcss)
-#    lcss = [ list(x) for x in lcs_set ]
+    
+    print('max_length:',maxStep+1)            
+#    print(ob_LCS.lcss)
+    lcs_set = set(tuple(x) for x in ob_LCS.lcss)
+    lcss = [ list(x) for x in lcs_set ]
 #    print(lcss)
-    return ob_LCS.lcss
+    return lcss
 
 def SimilarityMeasureOfSequence(seq,i,j):
-#    print("Enter SimilarityMeasureOfSequence")
     seqNi = ast.literal_eval(input_seq.iloc[i,2])
     seqNj = ast.literal_eval(input_seq.iloc[j,2])
     if len(seq)==0:
@@ -220,37 +194,10 @@ def SimilarityMeasureOfSequence(seq,i,j):
     sm = 0
     res = 0
 
-    x = 0
-    while x<len(seq):
-        node = seq[x]
-        x += 1
+    for node in seq:
         sm+=min(seqNi[node.ipos],seqNj[node.jpos])
-#
-#    print(sm)
-    res = 2**x * sm
-#    for x in range(1,len(seq)):
-#        deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
-#        deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
-#        if abs(deltai-deltaj)>tth:
-#            sm /= 2
 
-#    sm = []
-#    x = 1
-#    lastx = x-1
-#    res = 0
-#    for node in seq:
-#        sm.append( min(seqNi[node.ipos],seqNj[node.jpos]))
-##    print(sm)
-#    while x < len(seq):
-#        deltai = sum(timei[seq[x-1].ipos:seq[x].ipos])
-#        deltaj = sum(timej[seq[x-1].jpos:seq[x].jpos])
-#        if abs(deltai-deltaj)>tth:
-#            res += 2**(x+1-lastx)*sum(sm[lastx:x+1])
-#            lastx = x-1
-##            print(res)
-#        x += 1
-#    if lastx == 0:
-#        res += 2**(x+1-lastx)*sum(sm[lastx:x+1])
+    res = 2**(len(seq)-1) * sm
 
     return res
 
@@ -266,20 +213,7 @@ def SimilarityOfLayer(seq_list, i, j):
     s = s/(ni*nj)
     return s
 
-#seqi = ast.literal_eval(input_seq.iloc[1,1])
-#seqj = ast.literal_eval(input_seq.iloc[1,1])
-#
-#res = SequenceMatching(1,1,5,10800)
-#print("seqi:",seqi)
-#print("seqj:",seqj)
-#print("res:")
-#for r in res:
-#    print(r)
 
-#max_length = int(mlength)
-#max_len_seq_table = [[[] for i in range(max_id_of_people+1)] for i in range(max_id_of_people+1)]
-#seqi = ast.literal_eval(input_seq.iloc[int(person_id),1])
-#print("seq_"+str(input_seq.iloc[int(person_id),0])+":",seqi)
 max_len_seq_table = [[-1 for i in range(max_id_of_people+1)] for i in range(max_id_of_people+1)]
 similarity = 0
 print("=============================================")
@@ -290,25 +224,6 @@ similarity = SimilarityOfLayer(max_len_seq_table, person_idx, person_idx2)
 #print(person_id,"-",person_id2,":",pd.DataFrame(max_len_seq_table[int(person_id)][int(person_id2)]))
 print(person_id,"-",person_id2,":",max_len_seq_table[int(person_id)][int(person_id2)])
 print("Similarity("+str(person_id)+","+str(person_id2)+"):",similarity)
-
-#for i in range(len(input_seq[0])):
-#    print(i)
-#    for j in range(i,len(input_seq[0])):
-#        max_len_seq_table[input_seq.iloc[i,0]][input_seq.iloc[j,0]] = SequenceMatching(i,j,max_length,tth)
-#        print(input_seq.iloc[i,0],"-",input_seq.iloc[j,0],":",max_len_seq_table[input_seq.iloc[i,0]][input_seq.iloc[j,0]])
-
-#print(max_len_seq_table[17][41])
-#print(similarity)
-#df = pd.DataFrame(similarity)
-#df.to_csv(output_file_name,header=None, index=None, sep='\t')
-
-
-
-
-#similarity001 = [[] for i in range(max_id_of_people_001+1)]
-#for i in range(len(input_seq[0])):
-#    similarity001[input_seq.iloc[i,0]] = SimilarityOfLayer(input_seq,max_len_seq_table_001,idx_001,i)
-
 
 
 

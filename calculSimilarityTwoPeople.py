@@ -91,8 +91,8 @@ class LCS:
     
     def isLegal(self, seq):
         for x in range(1,len(seq)):
-            deltai = sum(self.timei[seq[x-1].ipos:seq[x].ipos])
-            deltaj = sum(self.timej[seq[x-1].jpos:seq[x].jpos])
+            deltai = sum(self.timei[seq[x].ipos:seq[x-1].ipos])
+            deltaj = sum(self.timej[seq[x].jpos:seq[x-1].jpos])
             if abs(deltai-deltaj)>tth:
                 return False
         return True

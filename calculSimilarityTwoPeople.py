@@ -38,6 +38,7 @@ max_id_of_people = max(input_seq[0])
 
 tth = int(tth)
 
+
 class Node:
     def __init__(self, cluster, i, j):
         self.cluster = cluster
@@ -88,12 +89,16 @@ class LCS:
         self.tth = tth
         self.lcss = []
         self.state = [[0 for x in range(len(timej)+2)] for x in range(len(timei)+2)]
+        
+    def initState(self):
+        self.state = [[0 for x in range(len(self.timej)+2)] for x in range(len(self.timei)+2)]
     
     def isLegal(self, seq):
         for x in range(1,len(seq)):
             deltai = sum(self.timei[seq[x].ipos:seq[x-1].ipos])
             deltaj = sum(self.timej[seq[x].jpos:seq[x-1].jpos])
-            if abs(deltai-deltaj)>tth:
+            if abs(deltai-deltaj)>self.tth:
+#                print(abs(deltai-deltaj))
                 return False
         return True
     
@@ -106,20 +111,34 @@ class LCS:
                 break
             direction = flag[i][j]
             if direction == 2:
-                lcs.append(Node(seqi[i-1],i-1,j-1))
-                i -= 1
-                j -= 1
+                if len(lcs)==0:
+                    lcs.append(Node(seqi[i-1],i-1,j-1))
+                    i -= 1
+                    j -= 1  
+                else:
+                    lastNode = lcs[-1]
+                    currentNode = Node(seqi[i-1],i-1,j-1)
+                    deltai = sum(self.timei[currentNode.ipos:lastNode.ipos])
+                    deltaj = sum(self.timej[currentNode.jpos:lastNode.jpos])
+                    if abs(deltai-deltaj)<=self.tth:
+                        lcs.append(Node(seqi[i-1],i-1,j-1))
+                        i -= 1
+                        j -= 1
+                    else:
+                        break
             else:
                 if direction == 1:
                     i -= 1
                 elif direction == 3:
                     j -= 1
                 else:
-                    tmp = lcs.copy()
-                    self.getAllLcs(flag, seqi, tmp, maxSublen, i-1, j)
+#                    tmp = lcs.copy()
+                    self.getAllLcs(flag, seqi, lcs.copy(), maxSublen, i-1, j)
 #                    lcs = tmp
-                    self.getAllLcs(flag, seqi, lcs, maxSublen, i, j-1)
-        if (len(lcs)==maxSublen) & self.isLegal(lcs):
+                    self.getAllLcs(flag, seqi, lcs.copy(), maxSublen, i, j-1)
+#        if (len(lcs)==maxSublen) & self.isLegal(lcs):
+#            self.lcss.append(lcs[::-1])
+        if len(lcs)==maxSublen:
             self.lcss.append(lcs[::-1])
         del lcs
 
@@ -154,28 +173,33 @@ def SequenceMatching(users_seq, i, j ,tth):
                 flag[x+1][y+1] = 4
 
     maxStep = min(max_length,max(max(c)))
-
+    
 #    print(pd.DataFrame(c))
 #    print(maxStep)
 #    print(pd.DataFrame(flag))
 
     ob_LCS = LCS(timei, timej, tth)
 #    print(maxStep)
-    lcs = []
     a = np.asarray(c)
     sorted_values = (-a).argsort(axis=None, kind='mergesort')
     idx = np.unravel_index(sorted_values, a.shape)
     l = np.vstack(idx).T
     while (len(ob_LCS.lcss)==0) & (maxStep>0):
+        ob_LCS.initState()
+        print("======================")
+        print(maxStep)
+        n = 0
         for i in l:
-#            print("c[i[0]][i[1]]:",c[i[0]][i[1]])
+            n += 1
             if c[i[0]][i[1]] >= maxStep:
-                lcs = []
                 x = i[0]
                 y = i[1]
-                ob_LCS.getAllLcs(flag, seqi, lcs, maxStep, x, y)
+                ob_LCS.getAllLcs(flag, seqi, [], maxStep, x, y)
             else:
                 break
+#        print(ob_LCS.lcss)
+        print(n)
+        print()
         maxStep -= 1
     
     print('max_length:',maxStep+1)            
@@ -224,14 +248,3 @@ similarity = SimilarityOfLayer(max_len_seq_table, person_idx, person_idx2)
 #print(person_id,"-",person_id2,":",pd.DataFrame(max_len_seq_table[int(person_id)][int(person_id2)]))
 print(person_id,"-",person_id2,":",max_len_seq_table[int(person_id)][int(person_id2)])
 print("Similarity("+str(person_id)+","+str(person_id2)+"):",similarity)
-
-
-
-
-
-
-
-
-
-
-

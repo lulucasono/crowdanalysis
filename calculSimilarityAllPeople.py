@@ -68,14 +68,9 @@ class LCS:
         self.tth = tth
         self.lcss = []
         self.state = [[0 for x in range(len(timej)+2)] for x in range(len(timei)+2)]
-    
-    def isLegal(self, seq):
-        for x in range(1,len(seq)):
-            deltai = sum(self.timei[seq[x-1].ipos:seq[x].ipos])
-            deltaj = sum(self.timej[seq[x-1].jpos:seq[x].jpos])
-            if abs(deltai-deltaj)>tth:
-                return False
-        return True
+        
+    def initState(self):
+        self.state = [[0 for x in range(len(self.timej)+2)] for x in range(len(self.timei)+2)]
     
     def getAllLcs(self, flag, seqi, lcs, maxSublen, i, j):
         while (i>0)&(j>0)&(len(lcs)<maxSublen):
@@ -86,20 +81,34 @@ class LCS:
                 break
             direction = flag[i][j]
             if direction == 2:
-                lcs.append(Node(seqi[i-1],i-1,j-1))
-                i -= 1
-                j -= 1
+                if len(lcs)==0:
+                    lcs.append(Node(seqi[i-1],i-1,j-1))
+                    i -= 1
+                    j -= 1  
+                else:
+                    lastNode = lcs[-1]
+                    currentNode = Node(seqi[i-1],i-1,j-1)
+                    deltai = sum(self.timei[currentNode.ipos:lastNode.ipos])
+                    deltaj = sum(self.timej[currentNode.jpos:lastNode.jpos])
+                    if abs(deltai-deltaj)<=self.tth:
+                        lcs.append(Node(seqi[i-1],i-1,j-1))
+                        i -= 1
+                        j -= 1
+                    else:
+                        break
             else:
                 if direction == 1:
                     i -= 1
                 elif direction == 3:
                     j -= 1
                 else:
-                    tmp = lcs.copy()
-                    self.getAllLcs(flag, seqi, tmp, maxSublen, i-1, j)
+#                    tmp = lcs.copy()
+                    self.getAllLcs(flag, seqi, lcs.copy(), maxSublen, i-1, j)
 #                    lcs = tmp
-                    self.getAllLcs(flag, seqi, lcs, maxSublen, i, j-1)
-        if (len(lcs)==maxSublen) & self.isLegal(lcs):
+                    self.getAllLcs(flag, seqi, lcs.copy(), maxSublen, i, j-1)
+#        if (len(lcs)==maxSublen) & self.isLegal(lcs):
+#            self.lcss.append(lcs[::-1])
+        if len(lcs)==maxSublen:
             self.lcss.append(lcs[::-1])
         del lcs
         
@@ -145,6 +154,7 @@ def SequenceMatching(users_seq, i, j ,tth):
     idx = np.unravel_index(sorted_values, a.shape)
     l = np.vstack(idx).T
     while (len(ob_LCS.lcss)==0) & (maxStep>0):
+        ob_LCS.initState()
         for i in l:
 #            print("c[i[0]][i[1]]:",c[i[0]][i[1]])
             if c[i[0]][i[1]] >= maxStep:
